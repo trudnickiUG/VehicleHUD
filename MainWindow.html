@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="mainStyle.css">
+</head>
+
+<body>
+<!--The video to play in the background-->
+<video autoplay muted loop id="backgroundStream">
+    <source src="beemovie.mp4" type="video/mp4">
+</video>
+
+<div class="geeks">
+    <div class="map">
+        Map location
+    </div>
+</div>
+
+<div id="batteryWidget">
+    <span id="batterySymbol">🔋</span>
+    <span id="batteryLevel">Loading...</span>
+    <span id="chargingStatus"></span>
+</div>
+
+<script>
+    async function updateBattery() {
+        try {
+            const response = await fetch(
+                "http://127.0.0.1:8765/battery",
+                { cache: "no-store" }
+            );
+
+            if (!response.ok) {
+                throw new Error("Battery server unavailable");
+            }
+
+            const battery = await response.json();
+
+            if (battery.level === 255) {
+                document.getElementById("batteryLevel")
+                    .textContent = "Unknown";
+            } else {
+                document.getElementById("batteryLevel")
+                    .textContent = battery.level + "%";
+            }
+
+            document.getElementById("batterySymbol")
+                .textContent = battery.charging ? "⚡" : "🔋";
+
+            document.getElementById("chargingStatus")
+                .textContent = battery.charging
+                    ? "Charging"
+                    : "On battery";
+
+            document.getElementById("batteryWidget")
+                .style.color = battery.level <= 20
+                    ? "#ff5252"
+                    : "#ffffff";
+
+        } catch (error) {
+            document.getElementById("batteryLevel")
+                .textContent = "--";
+
+            document.getElementById("chargingStatus")
+                .textContent = "Server offline";
+        }
+    }
+
+    updateBattery();
+    setInterval(updateBattery, 5000);
+</script>
+
+</body>
+
+</html>
